@@ -3,34 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MBTI Vibe</title>
+  <title>MBTI Vibe — Deploy</title>
   <style>
-    body { margin:0; background:#0c0c0e; color:#edeae0; font-family:system-ui,sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    .box { text-align:center; opacity:.8; }
+    :root { color-scheme: dark; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0c0c0e; color: #edeae0;
+    }
+    .card {
+      max-width: 34rem; margin: 1.5rem; padding: 2rem;
+      border: 1px solid rgba(237,234,224,.12);
+      border-radius: 1rem; background: rgba(237,234,224,.03);
+    }
+    h1 { font-size: 1.5rem; margin: 0 0 .5rem; }
+    p { color: rgba(237,234,224,.65); line-height: 1.55; font-size: .95rem; }
+    a { color: #ce4c46; }
+    ol { color: rgba(237,234,224,.75); line-height: 1.6; padding-left: 1.2rem; }
+    code { font-size: .85em; background: rgba(237,234,224,.08); padding: .1rem .35rem; border-radius: .25rem; }
   </style>
 </head>
 <body>
-  <div class="box" id="status">Loading MBTI Vibe…</div>
-  <script>
-  (async function () {
-    const n = 6;
-    const parts = [];
-    for (let i = 0; i < n; i++) {
-      const res = await fetch('part' + i + '.txt');
-      if (!res.ok) throw new Error('Missing part ' + i);
-      parts.push(await res.text());
-    }
-    const b64 = parts.join('');
-    const bin = atob(b64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    const html = new TextDecoder('utf-8').decode(bytes);
-    document.open();
-    document.write(html);
-    document.close();
-  })().catch(function (err) {
-    document.getElementById('status').textContent = 'Failed to load app: ' + err.message;
-  });
-  </script>
+  <div class="card">
+    <h1>MBTI Vibe</h1>
+    <p>Repo is live. One step left to host the full app on GitHub Pages for free.</p>
+    <ol>
+      <li>Open the repo: <a href="https://github.com/Vampsoutside/mbti-vibe">github.com/Vampsoutside/mbti-vibe</a></li>
+      <li>Upload your <code>index.html</code> (Add file → Upload files), replacing this page.</li>
+      <li>Settings → Pages → Source: <strong>Deploy from a branch</strong> → Branch <code>main</code> / <code>/</code> → Save.</li>
+    </ol>
+    <p>After 1–2 minutes the app will be at:<br />
+      <a href="https://vampsoutside.github.io/mbti-vibe/">https://vampsoutside.github.io/mbti-vibe/</a>
+    </p>
+  </div>
 </body>
 </html>
