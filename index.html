@@ -1,13 +1,36 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="MBTI Vibe: personalized movie and song recommendations based on your personality type." />
-  <title>MBTI Vibe - Song and Movie Recommender</title>
-  <script>window.location.replace('https://vampsoutside.github.io/mbti-vibe/');</script>
+  <title>MBTI Vibe</title>
+  <style>
+    body { margin:0; background:#0c0c0e; color:#edeae0; font-family:system-ui,sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .box { text-align:center; opacity:.8; }
+  </style>
 </head>
 <body>
-  <p>Loading MBTI Vibe… If you are not redirected, open <a href="https://vampsoutside.github.io/mbti-vibe/">the live site</a>.</p>
+  <div class="box" id="status">Loading MBTI Vibe…</div>
+  <script>
+  (async function () {
+    const n = 6;
+    const parts = [];
+    for (let i = 0; i < n; i++) {
+      const res = await fetch('part' + i + '.txt');
+      if (!res.ok) throw new Error('Missing part ' + i);
+      parts.push(await res.text());
+    }
+    const b64 = parts.join('');
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const html = new TextDecoder('utf-8').decode(bytes);
+    document.open();
+    document.write(html);
+    document.close();
+  })().catch(function (err) {
+    document.getElementById('status').textContent = 'Failed to load app: ' + err.message;
+  });
+  </script>
 </body>
 </html>
