@@ -1,4 +1,4 @@
-    const OMDB_API_KEY = "911ca8df";
+const OMDB_API_KEY = "90516521";
     const OMDB_BASE = "https://www.omdbapi.com/";
 
     // State Variables
