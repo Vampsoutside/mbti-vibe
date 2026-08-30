@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="MBTI Vibe: personalized movie and song recommendations based on your personality type." />
+  <!-- Open Graph / Twitter -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="MBTI Vibe – Personality Movie & Song Recommendations" />
+  <meta property="og:description" content="Discover movies and songs tuned to your MBTI type. Take the quiz or pick your type." />
+  <meta property="og:url" content="https://mbti-vibe.vercel.app" />
+  <meta property="og:site_name" content="MBTI Vibe" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="MBTI Vibe – Personality Movie & Song Recommendations" />
+  <meta name="twitter:description" content="Discover movies and songs tuned to your MBTI type." />
+  <title>MBTI Vibe - Song and Movie Recommender</title>
+
+  <!-- No Tailwind CDN — static CSS only (Play CDN was the main Safari mobile bottleneck) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://images.weserv.nl" crossorigin />
+  <link rel="dns-prefetch" href="https://images.weserv.nl" />
+  <link rel="dns-prefetch" href="https://www.omdbapi.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" /></noscript>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-canvas text-pearl antialiased min-h-screen overflow-x-hidden flex flex-col justify-between">
+
+  <!-- Fixed ambient background wash -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+    <div class="orb w-[540px] h-[540px] bg-accent/40 -top-32 -left-20"></div>
+    <div class="orb w-[420px] h-[420px] bg-accent/20 bottom-10 -right-20"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="fixed top-0 inset-x-0 z-50 border-b border-pearl/10 bg-canvas/80 backdrop-blur-md">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-3 group" onclick="showHome(); return false;">
+        <span class="w-8 h-8 rounded bg-accent flex items-center justify-center text-pearl text-xs font-bold font-display tracking-widest">
+          MV
+        </span>
+        <div class="leading-none">
+          <span class="block text-sm font-semibold text-pearl font-display tracking-tight">MBTI Vibe</span>
+          <span class="block text-[9px] text-pearl/40 mt-1 uppercase tracking-widest">Personality and Media</span>
+        </div>
+      </a>
+      <nav class="flex items-center gap-6 text-sm" aria-label="Primary">
+        <button type="button" onclick="startQuiz()" class="text-pearl/60 hover:text-pearl transition-colors duration-200">Quiz</button>
+        <button type="button" onclick="showSection('manual-section')" class="text-pearl/60 hover:text-pearl transition-colors duration-200">My Type</button>
+        <button type="button" onclick="showSection('results-section')" class="text-pearl/60 hover:text-pearl transition-colors duration-200">Results</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="relative z-10 pt-16 flex-1 flex flex-col">
+
+    <!-- Hero (Asymmetric Split Screen layout) -->
+    <section id="hero" class="relative max-w-6xl mx-auto px-6 pt-16 md:pt-24 pb-20 grid grid-cols-1 md:grid-cols-12 gap-12 items-center flex-1">
+      <!-- Left Editorial Column -->
+      <div class="md:col-span-7 flex flex-col items-start text-left">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-pearl/10 bg-pearl/5 text-[11px] font-mono uppercase text-accent tracking-[0.2em] mb-8">
+          <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+          Curated for how you think
+        </div>
+
+        <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold text-pearl leading-[1.1] tracking-tight mb-6">
+          Media that matches<br />
+          <span class="gradient-text italic leading-[1.15] pb-1">your mind</span>
+        </h1>
+
+        <p class="max-w-[45ch] text-pearl/60 text-base sm:text-lg leading-relaxed mb-10">
+          Discover movies and songs tuned to your MBTI type. Calm, personal, and thoughtfully chosen.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+          <button type="button" onclick="startQuiz()" class="btn-tactile bg-pearl text-canvas hover:bg-pearl/90 w-full sm:w-auto px-8 py-4 rounded-lg font-semibold text-sm transition-colors duration-200">
+            Take the Personality Quiz
+          </button>
+          <button type="button" onclick="showSection('manual-section')" class="btn-tactile border border-pearl/20 text-pearl hover:bg-pearl/5 w-full sm:w-auto px-8 py-4 rounded-lg font-semibold text-sm transition-colors duration-200">
+            I Already Know My Type
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Abstract Dimensional visual Panel (Bento-like layout variation) -->
+      <div class="md:col-span-5 hidden md:grid grid-cols-2 gap-4 h-[380px] relative">
+        <div class="card rounded-xl p-6 flex flex-col justify-between border-pearl/10">
+          <span class="text-xs font-mono text-pearl/30">01 / ENERGY</span>
+          <div class="flex justify-between items-baseline mt-4">
+            <span class="text-3xl font-display font-semibold text-pearl/90">E</span>
+            <span class="text-3xl font-display font-semibold text-pearl/20">I</span>
+          </div>
+        </div>
+        <div class="card rounded-xl p-6 flex flex-col justify-between border-pearl/10 bg-pearl/[0.01]">
+          <span class="text-xs font-mono text-pearl/30">02 / INFO</span>
+          <div class="flex justify-between items-baseline mt-4">
+            <span class="text-3xl font-display font-semibold text-pearl/20">S</span>
+            <span class="text-3xl font-display font-semibold text-pearl/90 text-accent">N</span>
+          </div>
+        </div>
+        <div class="card rounded-xl p-6 flex flex-col justify-between border-pearl/10 bg-pearl/[0.01]">
+          <span class="text-xs font-mono text-pearl/30">03 / DECISIONS</span>
+          <div class="flex justify-between items-baseline mt-4">
+            <span class="text-3xl font-display font-semibold text-pearl/90 text-accent">T</span>
+            <span class="text-3xl font-display font-semibold text-pearl/20">F</span>
+          </div>
+        </div>
+        <div class="card rounded-xl p-6 flex flex-col justify-between border-pearl/10">
+          <span class="text-xs font-mono text-pearl/30">04 / LIFESTYLE</span>
+          <div class="flex justify-between items-baseline mt-4">
+            <span class="text-3xl font-display font-semibold text-pearl/90">J</span>
+            <span class="text-3xl font-display font-semibold text-pearl/20">P</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz -->
+    <section id="quiz-section" class="hidden px-6 pb-20 flex-1 flex flex-col justify-center items-center">
+      <div class="max-w-xl w-full mx-auto section-enter">
+        <div class="mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-xs font-mono text-pearl/40 uppercase tracking-widest">
+              Question <span id="quiz-current">1</span> of <span id="quiz-total">16</span>
+            </p>
+            <button type="button" onclick="showHome()" class="text-xs text-pearl/40 hover:text-pearl transition-colors duration-200">
+              Cancel Quiz
+            </button>
+          </div>
+          <div class="h-[2px] w-full bg-pearl/10 rounded-full overflow-hidden">
+            <div id="quiz-progress" class="progress-fill h-full rounded-full" style="width: 6.25%"></div>
+          </div>
+        </div>
+
+        <div class="card rounded-xl p-8 sm:p-10" id="quiz-card">
+          <p id="quiz-dimension" class="text-[11px] font-mono uppercase tracking-[0.18em] text-accent mb-6"></p>
+          <h2 id="quiz-question" class="font-display text-2xl sm:text-3xl font-semibold text-pearl leading-snug mb-10"></h2>
+
+          <div class="space-y-4" id="quiz-answers" role="group" aria-label="Answer choices">
+            <button type="button" class="answer-btn w-full text-left flex items-start gap-5 p-5 rounded-lg border border-pearl/10 bg-pearl/[0.02] hover:border-accent/40 hover:bg-accent/[0.02]" onclick="answerQuiz('A')">
+              <span class="shrink-0 w-8 h-8 rounded border border-pearl/15 bg-pearl/5 flex items-center justify-center text-sm font-semibold text-pearl/80 font-display">A</span>
+              <span id="quiz-option-a" class="text-sm sm:text-base text-pearl/70 pt-0.5 leading-relaxed"></span>
+            </button>
+            <button type="button" class="answer-btn w-full text-left flex items-start gap-5 p-5 rounded-lg border border-pearl/10 bg-pearl/[0.02] hover:border-accent/40 hover:bg-accent/[0.02]" onclick="answerQuiz('B')">
+              <span class="shrink-0 w-8 h-8 rounded border border-pearl/15 bg-pearl/5 flex items-center justify-center text-sm font-semibold text-pearl/80 font-display">B</span>
+              <span id="quiz-option-b" class="text-sm sm:text-base text-pearl/70 pt-0.5 leading-relaxed"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-8 flex items-center justify-between">
+          <button id="quiz-back-btn" type="button" onclick="quizGoBack()" class="text-sm text-pearl/50 hover:text-pearl transition-colors duration-200 disabled:opacity-30 disabled:pointer-events-none" disabled>
+            Back
+          </button>
+          <button type="button" onclick="debugRandomType()" class="text-[10px] text-pearl/30 hover:text-pearl/60 transition-colors duration-200" title="Skip quiz and display a random MBTI type profile">
+            Skip to random type
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Manual Entry -->
+    <section id="manual-section" class="hidden px-6 pb-20 flex-1">
+      <div class="max-w-6xl w-full mx-auto section-enter pt-8">
+        <div class="text-center mb-10">
+          <h2 class="font-display text-3xl sm:text-4xl font-semibold text-pearl tracking-tight">Choose Your MBTI Type</h2>
+          <p class="text-pearl/45 mt-3 text-sm max-w-xl mx-auto">Tap a card to open your profile, soundtrack, and movie picks. Sixteen types, one that feels like you.</p>
+          <button type="button" onclick="showHome()" class="mt-4 text-xs text-pearl/40 hover:text-pearl transition-colors">Back to home</button>
+        </div>
+
+        <div id="type-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <!-- Filled by JS from typeProfiles -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results-section" class="hidden px-6 pb-24 max-w-6xl mx-auto w-full flex-1">
+      <div class="section-enter">
+        
+        <!-- Profile Header Block -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-8 border-b border-pearl/10">
+          <div>
+            <div class="inline-flex items-center gap-2 text-[11px] font-mono uppercase text-accent tracking-[0.2em] mb-4">
+              <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
+              Your personality profile
+            </div>
+            <h2 id="results-type-title" class="font-display text-3xl sm:text-4xl font-semibold text-pearl tracking-tight mb-3">Type</h2>
+            <p id="results-type-desc" class="text-pearl/60 text-sm sm:text-base max-w-[65ch] leading-relaxed">
+              Select your type to see personalized recommendations.
+            </p>
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="button" onclick="shareResults()" class="btn-tactile text-xs px-4 py-2.5 rounded-lg border border-pearl/10 hover:bg-pearl/5 hover:border-pearl/20 font-medium flex items-center gap-2 transition-colors duration-200" aria-label="Share your type profile">
+              <svg class="w-3.5 h-3.5 text-pearl/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Share Profile
+            </button>
+            <button type="button" onclick="startQuiz()" class="btn-tactile text-xs px-4 py-2.5 rounded-lg border border-pearl/10 hover:bg-pearl/5 hover:border-pearl/20 font-medium transition-colors duration-200">
+              Retake Quiz
+            </button>
+            <button type="button" onclick="showSection('manual-section')" class="btn-tactile text-xs px-4 py-2.5 rounded-lg border border-pearl/10 hover:bg-pearl/5 hover:border-pearl/20 font-medium transition-colors duration-200">
+              Change Type
+            </button>
+          </div>
+        </div>
+
+        <!-- Type summary (above recommendations) -->
+        <div id="type-summary-card" class="card rounded-xl p-6 sm:p-8 border-pearl/10 mb-10">
+          <div class="flex flex-col sm:flex-row sm:items-start gap-5">
+            <div class="shrink-0 w-16 h-16 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center">
+              <span id="summary-type-code" class="font-display text-xl font-semibold text-accent tracking-widest">----</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-[11px] font-mono uppercase tracking-[0.18em] text-accent mb-2">At a glance</p>
+              <h3 id="summary-type-name" class="font-display text-2xl font-semibold text-pearl mb-2">Your type</h3>
+              <p id="summary-type-blurb" class="text-pearl/60 text-sm leading-relaxed max-w-3xl"></p>
+              <div id="summary-traits" class="flex flex-wrap gap-2 mt-4"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+          
+          <!-- Column 1: Movies -->
+          <div id="movies-container">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-8 h-8 rounded bg-accent/10 border border-accent/25 flex items-center justify-center">
+                <svg class="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                </svg>
+              </div>
+              <h3 class="font-display text-xl font-semibold text-pearl">Recommended Movies</h3>
+              <span class="ml-auto text-xs font-mono text-pearl/40" id="movies-count">Loading</span>
+            </div>
+            
+            <div class="space-y-4" id="movies-list"></div>
+            
+            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+              <button id="movies-load-more" type="button" onclick="refreshMovies()" class="btn-tactile flex-1 py-3 rounded-lg border border-pearl/10 text-pearl/80 hover:bg-pearl/5 text-sm font-medium transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed">
+                Refresh Recommendations
+              </button>
+              <button id="clear-prefs-btn" type="button" onclick="clearPreferences()" class="btn-tactile text-xs px-4 py-3 rounded-lg border border-pearl/10 text-pearl/40 hover:text-pearl/80 hover:border-accent transition-colors duration-200" title="Wipe local likes and dislikes for this type">
+                Clear My Preferences
+              </button>
+            </div>
+            <p id="prefs-status" class="mt-3 text-[11px] font-mono text-pearl/30 text-center sm:text-left"></p>
+          </div>
+
+          <!-- Column 2: Songs (Fully realized interactive Playlist) -->
+          <div id="songs-container">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-8 h-8 rounded bg-accent/10 border border-accent/25 flex items-center justify-center">
+                <svg class="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+                </svg>
+              </div>
+              <h3 class="font-display text-xl font-semibold text-pearl">Soundtrack Vibe</h3>
+              <span class="ml-auto text-xs font-mono text-pearl/40" id="songs-count">5 Tracks</span>
+            </div>
+            
+            <div class="space-y-3" id="songs-list"></div>
+
+            <div class="mt-4 flex flex-col sm:flex-row gap-3">
+              <button id="songs-load-more" type="button" onclick="refreshSongs()" class="btn-tactile flex-1 py-3 rounded-lg border border-pearl/10 text-pearl/80 hover:bg-pearl/5 text-sm font-medium transition-colors duration-200">
+                Load more / Refresh soundtrack
+              </button>
+              <button id="songs-shuffle-btn" type="button" onclick="shuffleSongs()" class="btn-tactile sm:w-auto px-4 py-3 rounded-lg border border-pearl/10 text-pearl/50 hover:text-pearl/80 hover:border-accent text-xs font-medium transition-colors duration-200" title="Shuffle into a new set of tracks">
+                Shuffle vibe
+              </button>
+            </div>
+            <p id="songs-page-status" class="mt-2 text-[11px] font-mono text-pearl/30 text-center sm:text-left"></p>
+            
+            <div class="card rounded-xl p-5 mt-6 border-pearl/10 flex items-center justify-between">
+              <div class="flex items-center gap-4 min-w-0">
+                <div class="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                  <div class="flex items-end gap-[3px] w-4 h-4" id="visualizer-status">
+                    <span class="w-[3px] h-2 bg-accent/40 rounded-full"></span>
+                    <span class="w-[3px] h-4 bg-accent/40 rounded-full"></span>
+                    <span class="w-[3px] h-1 bg-accent/40 rounded-full"></span>
+                    <span class="w-[3px] h-3 bg-accent/40 rounded-full"></span>
+                  </div>
+                </div>
+                <div class="min-w-0">
+                  <span id="player-title" class="block text-xs font-semibold text-pearl truncate font-display tracking-tight text-sm">Select a track</span>
+                  <span id="player-artist" class="block text-[10px] text-pearl/40 truncate">Curated for your state of mind</span>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+                <a id="player-spotify-link" href="https://open.spotify.com" target="_blank" rel="noopener noreferrer" class="btn-tactile text-[10px] font-mono uppercase tracking-wider px-2.5 py-1.5 rounded border border-[#1DB954]/40 text-[#1DB954] hover:bg-[#1DB954]/10 transition-colors opacity-40 pointer-events-none" title="Open current track on Spotify">Spotify</a>
+                <button type="button" id="player-play-btn" onclick="togglePlayerPause()" class="w-8 h-8 rounded-full border border-pearl/10 flex items-center justify-center hover:border-accent hover:text-accent transition-colors shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent" disabled title="Select a song track above for a short preview">
+                  <svg class="w-3.5 h-3.5 translate-x-[1px]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <div class="flex items-center gap-2">
+                  <svg class="w-3.5 h-3.5 text-pearl/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                  <input type="range" id="player-volume" min="0" max="1" step="0.05" value="0.5" oninput="setPlayerVolume(this.value)" class="w-16 sm:w-20 h-1 bg-pearl/10 rounded-lg appearance-none cursor-pointer accent-accent" title="Preview volume" aria-label="Volume" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Deep type profile (after recommendations) -->
+        <div id="type-deep-profile" class="mt-16 pt-12 border-t border-pearl/10 space-y-10">
+          <div>
+            <p class="text-[11px] font-mono uppercase tracking-[0.18em] text-accent mb-3">Go deeper</p>
+            <h3 id="deep-profile-heading" class="font-display text-2xl sm:text-3xl font-semibold text-pearl tracking-tight mb-4">About this type</h3>
+            <p id="deep-profile-lead" class="text-pearl/60 text-sm sm:text-base leading-relaxed max-w-3xl"></p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="card rounded-xl p-6 border-pearl/10">
+              <h4 class="font-display text-lg font-semibold text-pearl mb-3">Overview</h4>
+              <p id="profile-overview" class="text-sm text-pearl/55 leading-relaxed"></p>
+            </div>
+            <div class="card rounded-xl p-6 border-pearl/10">
+              <h4 class="font-display text-lg font-semibold text-pearl mb-3">In a nutshell</h4>
+              <p id="profile-nutshell" class="text-sm text-pearl/55 leading-relaxed"></p>
+            </div>
+            <div class="card rounded-xl p-6 border-pearl/10">
+              <h4 class="font-display text-lg font-semibold text-pearl mb-3">Strengths</h4>
+              <ul id="profile-strengths" class="space-y-2 text-sm text-pearl/55 list-disc list-inside"></ul>
+            </div>
+            <div class="card rounded-xl p-6 border-pearl/10">
+              <h4 class="font-display text-lg font-semibold text-pearl mb-3">Growth edges</h4>
+              <ul id="profile-growth" class="space-y-2 text-sm text-pearl/55 list-disc list-inside"></ul>
+            </div>
+            <div class="card rounded-xl p-6 border-pearl/10">
+              <h4 class="font-display text-lg font-semibold text-pearl mb-3">Careers &amp; work</h4>
+              <p id="profile-careers" class="text-sm text-pearl/55 leading-relaxed"></p>
+            </div>
+            <div class="card rounded-xl p-6 border-pearl/10">
+              <h4 class="font-display text-lg font-semibold text-pearl mb-3">Relationships</h4>
+              <p id="profile-relationships" class="text-sm text-pearl/55 leading-relaxed"></p>
+            </div>
+          </div>
+
+          <div class="card rounded-xl p-6 sm:p-8 border-pearl/10">
+            <h4 class="font-display text-lg font-semibold text-pearl mb-4">Key facts</h4>
+            <ul id="profile-facts" class="space-y-3 text-sm text-pearl/55 leading-relaxed list-disc list-inside"></ul>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="card rounded-xl p-6 border-pearl/10">
+              <h4 class="font-display text-lg font-semibold text-pearl mb-3">How others may see you</h4>
+              <p id="profile-others" class="text-sm text-pearl/55 leading-relaxed"></p>
+            </div>
+            <div class="card rounded-xl p-6 border-pearl/10">
+              <h4 class="font-display text-lg font-semibold text-pearl mb-3">Famous examples</h4>
+              <p id="profile-famous" class="text-sm text-pearl/55 leading-relaxed"></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="relative z-10 border-t border-pearl/10 py-10 mt-20">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-pearl/40">
+      <div class="flex items-center gap-3">
+        <span class="text-pearl/50 font-display font-medium text-sm">MBTI Vibe</span>
+        <span>|</span>
+        <p>Song and Movie Recommender</p>
+      </div>
+      <div class="flex flex-col md:flex-row items-center gap-2 md:gap-6 text-center md:text-right">
+        <p>
+          Movie metadata via
+          <a href="https://www.omdbapi.com/" target="_blank" rel="noopener noreferrer" class="text-pearl/60 hover:text-accent underline underline-offset-4 transition-colors">OMDb API</a>
+        </p>
+        <p>For entertainment only. Not affiliated with MBTI.</p>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- Share Action Sheet -->
+  <div id="share-modal" class="fixed inset-0 z-[60] hidden items-end sm:items-center justify-center p-4" aria-hidden="true">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeShareModal()"></div>
+    <div class="relative w-full max-w-sm card rounded-2xl border-pearl/10 p-6 section-enter">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="font-display text-xl font-semibold text-pearl">Share your profile</h3>
+        <button type="button" onclick="closeShareModal()" class="text-pearl/40 hover:text-pearl text-lg leading-none" aria-label="Close">×</button>
+      </div>
+      <div class="space-y-3">
+        <button type="button" onclick="doNativeShare()" class="btn-tactile w-full py-3.5 rounded-xl border border-pearl/10 hover:border-accent/40 hover:bg-accent/5 text-sm font-medium text-left px-4 flex items-center gap-3">
+          <span class="text-accent">↗</span> Share (system)
+        </button>
+        <button type="button" onclick="doTwitterShare()" class="btn-tactile w-full py-3.5 rounded-xl border border-pearl/10 hover:border-accent/40 hover:bg-accent/5 text-sm font-medium text-left px-4 flex items-center gap-3">
+          <span class="text-accent">𝕏</span> Share on X / Twitter
+        </button>
+        <button type="button" onclick="doCopyShare()" class="btn-tactile w-full py-3.5 rounded-xl border border-pearl/10 hover:border-accent/40 hover:bg-accent/5 text-sm font-medium text-left px-4 flex items-center gap-3">
+          <span class="text-accent">⎘</span> Copy text
+        </button>
+        <button type="button" onclick="doDownloadCard()" class="btn-tactile w-full py-3.5 rounded-xl border border-pearl/10 hover:border-accent/40 hover:bg-accent/5 text-sm font-medium text-left px-4 flex items-center gap-3">
+          <span class="text-accent">↓</span> Download card image
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-lg border border-pearl/10 bg-canvas/95 text-pearl text-xs font-medium backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 transform translate-y-2 max-w-sm text-center" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
