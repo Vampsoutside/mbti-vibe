@@ -1,4 +1,4 @@
-const OMDB_API_KEY = "90516521";
+const OMDB_API_KEY = "911ca8df";
     const OMDB_BASE = "https://www.omdbapi.com/";
 
     // State Variables
@@ -1455,7 +1455,8 @@ const OMDB_API_KEY = "90516521";
       const selectedTitles = [];
       const keywordCounts = Object.create(null);
       const candidates = [];
-      const MAX_RESULTS = 10;
+      // Keep small for mobile: fewer OMDb round-trips = much faster time-to-usable
+      const MAX_RESULTS = 6;
       const MAX_PER_KEYWORD = 1; // prevent Matrix / Matrix / Glitch-in-Matrix piles
 
       function canAcceptTitle(title) {
@@ -1483,15 +1484,16 @@ const OMDB_API_KEY = "90516521";
       }
 
       // 1) Exact title hits from seeds (clean posters, no search noise)
+      // Cap at 4 parallel title lookups — enough for a full card list on mobile
       const seedSlice = [];
-      for (let i = 0; i < seedMovies.length && seedSlice.length < 6; i++) {
+      for (let i = 0; i < seedMovies.length && seedSlice.length < 4; i++) {
         const idx = (searchTermOffset + i) % seedMovies.length;
         const title = seedMovies[idx];
         if (title && !seedSlice.includes(title)) seedSlice.push(title);
       }
-      // Always include a couple of liked titles as exact lookups when available
+      // Prefer 1–2 liked titles when available
       for (const item of likedList) {
-        if (item.Title && seedSlice.length < 8 && !seedSlice.includes(item.Title)) {
+        if (item.Title && seedSlice.length < 5 && !seedSlice.includes(item.Title)) {
           seedSlice.push(item.Title);
         }
       }
@@ -1504,22 +1506,22 @@ const OMDB_API_KEY = "90516521";
         if (hit) acceptCandidate(hit);
       }
 
-      // 2) Broader search for diversity, still filtered hard
+      // Fast path: if seeds already filled the list, skip the slower search wave
+      // 2) Broader search only when needed (keeps India/mobile latency down)
       const queries = [];
-      const QUERY_BATCH = 6;
+      const QUERY_BATCH = 3;
       for (let i = 0; i < baseTerms.length && queries.length < QUERY_BATCH; i++) {
         const idx = (searchTermOffset + i * 2) % Math.max(baseTerms.length, 1);
         const t = baseTerms[idx];
         if (t && !queries.includes(t) && !seedSlice.includes(t)) queries.push(t);
       }
-      // Fill remaining query slots from searchTerms with stride for variety
       for (let i = 0; i < searchTerms.length && queries.length < QUERY_BATCH; i++) {
         const idx = (searchTermOffset + 3 + i * 3) % searchTerms.length;
         const t = searchTerms[idx];
         if (t && !queries.includes(t)) queries.push(t);
       }
 
-      if (candidates.length < MAX_RESULTS && queries.length) {
+      if (candidates.length < 4 && queries.length) {
         const searchResults = await Promise.all(
           queries.map((q) => omdbSearch(q).catch(() => []))
         );
