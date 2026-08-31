@@ -11,11 +11,20 @@
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
+          "value": "public, max-age=0, s-maxage=60, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=60, must-revalidate"
         }
       ]
     },
@@ -24,7 +33,20 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=60, s-maxage=60, stale-while-revalidate=300"
+          "value": "public, max-age=60, s-maxage=60, must-revalidate"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/mbti-vibe-app.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, s-maxage=60, must-revalidate"
         },
         {
           "key": "Content-Type",
@@ -37,11 +59,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000"
-        },
-        {
-          "key": "Content-Type",
-          "value": "text/css; charset=utf-8"
+          "value": "public, max-age=86400, s-maxage=604800"
         }
       ]
     },
